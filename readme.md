@@ -43,11 +43,17 @@
 ### ffmpeg 版本与显卡驱动兼容性
 对于使用老架构显卡的电脑，由于无法安装最新的显卡启动，高版本的 ffmpeg 未必能直接支持。
 
-（比如我的老显卡在高版本ffmpeg中无法通过 `-hwaccel auto` 或 `-hwaccel cuda` 来解码，只能用低版本的ffmpeg调用 `-hwaccel cuvid`）
+（比如我的老显卡老驱动在高版本ffmpeg中无法通过 `-hwaccel auto` 或 `-hwaccel cuda` 来解码，只能用低版本的ffmpeg调用 `-hwaccel cuvid`）
 
-此时需要对照确认您选择的 ffmpeg 版本与显卡兼容性。
+此时需要对照确认您选择的 ffmpeg 版本与显卡兼容性。下表仅供参考：
 
-> ⚠️ **注意**：我打包的 `FFmpegKit_with_ffmpeg` 中内置的 `ffmpeg.exe` 版本为 `6.1.1-full_build-www.gyan.dev`
+|FFmpeg 版本|NVENC API|驱动版本最低要求|
+|---|---|---|
+|6.1.1|12.x|522.25+|
+|7.1.1|12.2|531.14+|
+|8.1|13.0|570.00+|
+
+> ⚠️ **注意**：我打包的 `FFmpegKit_with_ffmpeg` 中内置的 `ffmpeg.exe` 版本为 `ffmpeg-6.1.1-essentials_build`
 
 ### 硬件加速逻辑
 程序通过 `-encoders` 指令动态分析：

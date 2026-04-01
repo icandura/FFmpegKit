@@ -68,48 +68,48 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConcatForm.cs">
+    <Compile Include="src\ConcatForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ConcatForm.Designer.cs">
+    <Compile Include="src\ConcatForm.Designer.cs">
       <DependentUpon>ConcatForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ConfigManager.cs" />
-    <Compile Include="ConvertForm.cs">
+    <Compile Include="src\ConfigManager.cs" />
+    <Compile Include="src\ConvertForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ConvertForm.Designer.cs">
+    <Compile Include="src\ConvertForm.Designer.cs">
       <DependentUpon>ConvertForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="CutForm.cs">
+    <Compile Include="src\CutForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="CutForm.Designer.cs">
+    <Compile Include="src\CutForm.Designer.cs">
       <DependentUpon>CutForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="FFmpegHelper.cs" />
-    <Compile Include="ImageToVideoForm.cs">
+    <Compile Include="src\FFmpegHelper.cs" />
+    <Compile Include="src\ImageToVideoForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ImageToVideoForm.Designer.cs">
+    <Compile Include="src\ImageToVideoForm.Designer.cs">
       <DependentUpon>ImageToVideoForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Logger.cs" />
-    <Compile Include="MainForm.cs">
+    <Compile Include="src\Logger.cs" />
+    <Compile Include="src\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainForm.Designer.cs">
+    <Compile Include="src\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="MergeForm.cs" />
-    <Compile Include="MergeForm.Designer.cs">
+    <Compile Include="src\MergeForm.cs" />
+    <Compile Include="src\MergeForm.Designer.cs">
       <DependentUpon>MergeForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Program.cs" />
-    <Compile Include="ProgressForm.cs">
+    <Compile Include="src\Program.cs" />
+    <Compile Include="src\ProgressForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ProgressForm.Designer.cs">
+    <Compile Include="src\ProgressForm.Designer.cs">
       <DependentUpon>ProgressForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -118,31 +118,31 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SeparateForm.cs">
+    <Compile Include="src\SeparateForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SeparateForm.Designer.cs">
+    <Compile Include="src\SeparateForm.Designer.cs">
       <DependentUpon>SeparateForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="SettingsForm.cs">
+    <Compile Include="src\SettingsForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SettingsForm.Designer.cs">
+    <Compile Include="src\SettingsForm.Designer.cs">
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="SpeedForm.cs">
+    <Compile Include="src\SpeedForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SpeedForm.Designer.cs">
+    <Compile Include="src\SpeedForm.Designer.cs">
       <DependentUpon>SpeedForm.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="CutForm.resx">
+    <EmbeddedResource Include="src\CutForm.resx">
       <DependentUpon>CutForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ImageToVideoForm.resx">
+    <EmbeddedResource Include="src\ImageToVideoForm.resx">
       <DependentUpon>ImageToVideoForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MainForm.resx">
+    <EmbeddedResource Include="src\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -150,7 +150,7 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="SettingsForm.resx">
+    <EmbeddedResource Include="src\SettingsForm.resx">
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="App.config" />

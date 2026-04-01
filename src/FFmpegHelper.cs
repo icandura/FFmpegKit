@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -54,7 +55,9 @@ namespace FFmpegKit
                 {
                     if (gpuType == "nvenc") sb.Append("-hwaccel cuda -hwaccel_output_format cuda ");
                     else if (gpuType == "amf") sb.Append("-hwaccel amf ");
-                    else if (gpuType == "qsv") sb.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
+                    //else if (gpuType == "qsv") sb.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
+                    //经测试在某些版本下异常，intel 显卡此处改用 auto
+                    else if (gpuType == "qsv") sb.Append("-hwaccel auto ");
                     else sb.Append("-hwaccel auto ");
                 }
 
@@ -72,7 +75,10 @@ namespace FFmpegKit
                     sb.Append($"-f lavfi -i color=c=black:s={width}x{height}:r=30 ");
 
                     string videoCodec = useGpu ? GetGpuVideoCodec(gpuType) : "libx264";
-                    sb.Append($"-c:v {videoCodec} -preset medium -crf 23 ");
+                    //sb.Append($"-c:v {videoCodec} -preset medium -crf 23 ");
+                    // 根据不同GPU类型确定质量参数
+                    string qualityParams = GetGpuQualityParams(gpuType, 23, useGpu);
+                    sb.Append($"-c:v {videoCodec} -preset medium {qualityParams}");
 
                     sb.Append("-c:a aac -b:a 192k -shortest ");   // -shortest 保证时长一致
                 }
@@ -81,8 +87,11 @@ namespace FFmpegKit
                     // ==================== 正常音视频转换 ====================
                     if (isOutputVideo)   // 输出是视频格式
                     {
-                        string videoCodec = GetGpuVideoCodec(gpuType);
-                        sb.Append($"-c:v {videoCodec} -preset medium ");
+                        string videoCodec = useGpu ? GetGpuVideoCodec(gpuType) : "libx264";
+                        //sb.Append($"-c:v {videoCodec} -preset medium ");
+                        // 根据不同GPU类型确定质量参数
+                        string qualityParams = GetGpuQualityParams(gpuType, 20, useGpu);
+                        sb.Append($"-c:v {videoCodec} -preset medium {qualityParams}");
 
                         if (targetHeight.HasValue && targetHeight > 0)
                         {
@@ -204,7 +213,9 @@ namespace FFmpegKit
                 {
                     if (gpuType == "nvenc") sb.Append("-hwaccel cuda -hwaccel_output_format cuda ");
                     else if (gpuType == "amf") sb.Append("-hwaccel amf ");
-                    else if (gpuType == "qsv") sb.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
+                    //else if (gpuType == "qsv") sb.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
+                    //经测试在某些版本下异常，intel 显卡此处改用 auto
+                    else if (gpuType == "qsv") sb.Append("-hwaccel auto ");
                     else sb.Append("-hwaccel auto ");
                 }
 
@@ -221,8 +232,11 @@ namespace FFmpegKit
                 if (precise)
                 {
                     // 重新编码（精确切割）
-                    string videoCodec = GetGpuVideoCodec(gpuType);
-                    sb.Append($"-c:v {videoCodec} -preset fast -crf 20 ");  // 可调 CRF
+                    string videoCodec = useGpu ? GetGpuVideoCodec(gpuType) : "libx264";
+                    //sb.Append($"-c:v {videoCodec} -preset fast -crf 20 ");  // 可调 CRF
+                    //原先的-crf在某些显卡下不支持，改为根据不同GPU类型确定质量参数
+                    string qualityParams = GetGpuQualityParams(gpuType, 20, useGpu);
+                    sb.Append($"-c:v {videoCodec} -preset medium {qualityParams}");
                 }
                 else
                 {
@@ -234,8 +248,6 @@ namespace FFmpegKit
 
                 sb.Append($"\"{outputFile}\"");
 
-                //// 执行单个任务
-                //Execute(sb.ToString(), $"切割 {fileName}");
                 commands.Add(sb.ToString());
             }
 
@@ -286,7 +298,9 @@ namespace FFmpegKit
                 {
                     if (gpuType == "nvenc") sb.Append("-hwaccel cuda -hwaccel_output_format cuda ");
                     else if (gpuType == "amf") sb.Append("-hwaccel amf ");
-                    else if (gpuType == "qsv") sb.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
+                    //else if (gpuType == "qsv") sb.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
+                    //经测试在某些版本下异常，intel 显卡此处改用 auto
+                    else if (gpuType == "qsv") sb.Append("-hwaccel auto ");
                     else sb.Append("-hwaccel auto ");
                 }
 
@@ -295,12 +309,16 @@ namespace FFmpegKit
                 // 视频倍速
                 if (!isAudioOnly)
                 {
-                    string videoCodec = GetGpuVideoCodec(gpuType);
-                    sb.Append($"-filter:v setpts=PTS/{speed} ");
-                    sb.Append($"-c:v {videoCodec} -preset fast -crf 23 ");
+                    string videoCodec = useGpu ? GetGpuVideoCodec(gpuType) : "libx264";
+                    //增加 fps=source_fps 解决在不同版本ffmpeg下输出帧率不同的问题，此处强制输出原始视频帧率
+                    sb.Append($"-filter:v \"setpts=PTS/{speed},fps=source_fps\" ");
+                    //sb.Append($"-c:v {videoCodec} -preset fast -crf 23 ");
+                    //原先的-crf在某些显卡下不支持，改为根据不同GPU类型确定质量参数
+                    string qualityParams = GetGpuQualityParams(gpuType, 20, useGpu);
+                    sb.Append($"-c:v {videoCodec} -preset medium {qualityParams}");
                 }
 
-                // 音频处理（核心修复）
+                // 音频处理
                 if (keepPitch)
                 {
                     // 保持原音调
@@ -403,21 +421,21 @@ namespace FFmpegKit
                 {
                     if (gpuType == "nvenc") sb2.Append("-hwaccel cuda -hwaccel_output_format cuda ");
                     else if (gpuType == "amf") sb2.Append("-hwaccel amf ");
-                    else if (gpuType == "qsv") sb2.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
+                    //else if (gpuType == "qsv") sb2.Append("-init_hw_device qsv:hw -hwaccel qsv -hwaccel_output_format qsv ");
+                    //经测试在某些版本下异常，intel 显卡此处改用 auto
+                    else if (gpuType == "qsv") sb2.Append("-hwaccel auto ");
                     else sb2.Append("-hwaccel auto ");
                 }
-                //// 只用-hwaccel auto
-                //if (useGpu)
-                //{
-                //     sb2.Append("-hwaccel auto ");
-                //}
 
                 sb2.Append($"-i \"{tempFile}\" ");
                 sb2.Append("-f lavfi -i anullsrc ");  // 静音音频轨
                 sb2.Append("-map 0:v -map 1:a ");
 
                 string videoCodec = useGpu ? GetGpuVideoCodec(gpuType) : "libx264";
-                sb2.Append($"-c:v {videoCodec} -preset medium -crf 23 ");
+                //sb2.Append($"-c:v {videoCodec} -preset medium -crf 23 ");
+                //原先的-crf在某些显卡下不支持，改为根据不同GPU类型确定质量参数
+                string qualityParams = GetGpuQualityParams(gpuType, 23, useGpu);
+                sb2.Append($"-c:v {videoCodec} -preset medium {qualityParams}");
                 sb2.Append("-c:a aac -b:a 192k -shortest ");
 
                 sb2.Append("-y ");
@@ -534,7 +552,7 @@ namespace FFmpegKit
 
                     if (isVideoOutput)
                     {
-                        // --- 视频模式 ---
+                        // --- 是否视频模式 ---
                         if (isAudio)
                         {
                             // 1. 将音频转为黑屏视频
@@ -558,7 +576,10 @@ namespace FFmpegKit
                             sb.Append($"-vf \"{vf}\" -r {fps} -pix_fmt yuv420p ");
 
                             string vCodec = useGpu ? GetGpuVideoCodec(gpuType) : "libx264";
-                            sb.Append($"-c:v {vCodec} ");
+                            //sb.Append($"-c:v {vCodec} ");
+                            // 根据不同GPU类型确定质量参数
+                            string qualityParams = GetGpuQualityParams(gpuType, 20, useGpu);
+                            sb.Append($"-c:v {vCodec} -preset medium {qualityParams}");                            
 
                             // 关键点：映射视频流，尝试映射原音频，若原视频无音频则映射静音流
                             // 使用 -map 0:v:0 -map 0:a? -map 1:a 确保最终 TS 文件必有音频轨
@@ -676,14 +697,8 @@ namespace FFmpegKit
             else
             {
                 // 兼容模式：转码处理
-                string videoCodec = "libx264";
-                if (useGpu)
-                {
-                    string gpuType = ConfigManager.DefaultGPU.ToLower();
-                    if (gpuType == "nvenc") videoCodec = "h264_nvenc";
-                    else if (gpuType == "amf") videoCodec = "h264_amf";
-                    else if (gpuType == "qsv") videoCodec = "h264_qsv";
-                }
+                string gpuType = ConfigManager.DefaultGPU.ToLower();
+                string videoCodec = useGpu ? GetGpuVideoCodec(gpuType) : "libx264";
 
                 if (useLongestAudio)
                 {
@@ -703,7 +718,10 @@ namespace FFmpegKit
                     // 注意：-shortest 会放在输出文件前生效
                 }
 
-                sb.Append($"-c:v {videoCodec} -preset medium -crf 23 ");
+                //sb.Append($"-c:v {videoCodec} -preset medium -crf 23 ");
+                // 根据不同GPU类型确定质量参数
+                string qualityParams = GetGpuQualityParams(gpuType, 20, useGpu);
+                sb.Append($"-c:v {videoCodec} -preset medium {qualityParams}");
             }
 
             // 3. 音频流映射与编码
@@ -917,6 +935,38 @@ namespace FFmpegKit
                 case "amf": return "h264_amf";
                 case "qsv": return "h264_qsv";
                 default: return "libx264";
+            }
+        }
+
+        /// <summary>
+        /// 根据GPU类型设置质量参数
+        /// </summary>
+        /// <param name="gpuType">GPU类型</param>
+        /// <param name="qualityValue">质量值（默认20，数字越小质量越高）</param>
+        /// <returns></returns>
+        private static string GetGpuQualityParams(string gpuType, int qualityValue = 20, bool useGpu = false)
+        {
+            if (useGpu)
+            {
+                switch (gpuType.ToLower())
+                {
+                    case "nvenc":
+                        // Nvidia 支持 -cq，但建议开启 vbr 模式
+                        return $"-rc vbr -cq {qualityValue} -qmin {qualityValue} -qmax {qualityValue} ";
+                    case "qsv":
+                        // Intel QSV 使用 -global_quality，这是你报错的核心原因
+                        return $"-global_quality {qualityValue} ";
+                    case "amf":
+                        // AMD 比较特殊，通常使用恒定质量 CQP 模式
+                        return $"-rc cqp -qp_i {qualityValue} -qp_p {qualityValue} ";
+                    default:
+                        // 默认回退到 CPU 的 CRF
+                        return $"-crf {qualityValue} ";
+                }
+            }
+            else 
+            {
+                return $"-crf {qualityValue} ";
             }
         }
 
