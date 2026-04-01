@@ -42,8 +42,7 @@
 
 ### ffmpeg 版本与显卡驱动兼容性
 对于使用老架构显卡的电脑，由于无法安装最新的显卡启动，高版本的 ffmpeg 未必能直接支持。
-
-（比如我的老显卡老驱动在高版本ffmpeg中无法通过 `-hwaccel auto` 或 `-hwaccel cuda` 来解码，只能用低版本的ffmpeg调用 `-hwaccel cuvid`）
+（比如我的老NVIDIA显卡老驱动在高版本ffmpeg中无法通过 `-hwaccel auto` 或 `-hwaccel cuda` 来解码，只能用低版本的ffmpeg调用 `-hwaccel cuvid`）
 
 此时需要对照确认您选择的 ffmpeg 版本与显卡兼容性。下表仅供参考：
 
@@ -58,7 +57,9 @@
 ### 硬件加速逻辑
 程序通过 `-encoders` 指令动态分析：
 * 若全局设置关闭了 GPU 加速，相关 UI 选项将自动置灰并引导至软解。
-* 优先尝试硬件解码，可能实现全链路加速（解码+编码）。
+* 优先尝试硬件解码，可能实现全链路GPU加速（解码+过滤+编码）。
+
+> ⚠️ **注意**：全链路GPU加速目前仅测试NVIDIA显卡，原本Intel显卡在采用`-hwaccel qsv -hwaccel_output_format qsv`的情况下也能实现全链路GPU加速，但由于部分驱动不兼容的原因，在v1.1版本中改回了`-hwaccel auto`以提高兼容性，导致链路变成`GPU解码→CPU搬运至内存过滤→GPU编码`。（比如Iris Xe的核显，如果只用了30及以下的版本驱动，无法调用`-hwaccel qsv`解码，此时`-hwaccel auto`只能调用`dxva2`来解码，需要升级到31及以上的核显驱动才能正常调用`-hwaccel qsv`），
 
 ### 关于“快速模式”串联
 在音视频串联功能中，**快速模式**采用 `Stream Copy` 技术：
